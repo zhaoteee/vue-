@@ -1,0 +1,44 @@
+## v2.0-父子组件及兄弟组件间的事件传递
+---
+* 项目通信简单，不使用vuex时，而且v2.0废弃了events等函数，<br>
+   官方文档指出可以使用一个单独的事件中心进行组件间通信
+* 具体过程记录如下：
+
+1. 在个组件的上层目录创建 bus.vue 空实例
+    `<script>
+        import Vue from 'vue';
+        var bus = new Vue();
+        export default bus;
+    </script>`
+    <!-- more -->
+2. 如果子组件(child)的点击事件有参数想传递到兄弟组件<br>
+    01-兄弟组件和该子组件(child)从上层目录中:
+    `import bus from '../bus';`
+    02-在子组件(child)中,addCount为触发事件的函数名
+    `methods: {
+      addCount() {
+        eventHub.$emit('cartadd', { 参数 })
+      }
+  }`<br>
+  03-兄弟组件`$on`监听,在`methods`中接收事件参数
+   `created() {
+    bus.$on('cartadd', this.addCount);
+    }`<br>
+  `methods: {
+    addCount(target) {
+     this.drop(target);
+    },
+    drop(el) {
+      console.log(el);
+    }
+  }`
+3.更复杂的一个方式:<br>子组件先将事件传递到两兄弟共同的父组件，<br>
+  在父组件中监听并接收参数<br>
+
+`addCount(target) {
+  this.$refs.兄弟组件.drop(target);
+}`
+在父组件应用兄弟组件时，使用 ref='兄弟组件'。并在兄弟组件中定义drop(target)方法，具体操作数据
+> 其中ref 用来给元素或子组件注册引用信息。引用信息会根据父组件的 $refs 对象进行注册
+
+4. 如果项目复杂最好使用vuex
